@@ -1,4 +1,5 @@
 import gcm
+import base64
 import sqlite3
 import datetime
 from argparse import ArgumentParser
@@ -97,9 +98,9 @@ def main():
         parser.error('[+] Error : add -k and -f option')
 
     try:
-        key = args.keyvalue.decode("hex")
+        key = base64.decodestring(args.keyvalue)
     except:
-        print '[+] Error : key format is hexstring'
+        print '[+] Error : key format is not base64 encoded'
         return
 
     print '[+] Key is %s'%key.encode('hex')
@@ -137,16 +138,25 @@ def main():
 
     d = datetime.datetime.strptime("01-01-2001", "%m-%d-%Y")
 
-    print '[+] Result'
+    from tableprint import columnprint
 
+    print '[+] Result'
+    header = ['Time(UTC+0)','Answered','Sent','Type','Phone Number', '']
+    
+    rows = []
     for record in records:
         time = record[column.index('ZDATE')]
         time_osx = d + datetime.timedelta(seconds=time)
-        time_converted = time_osx.strftime("%a, %d %b %Y %H:%M:%S GMT")
+        time_converted = time_osx.strftime("%a, %d %b %Y %H:%M:%S")
+
+        ans = record[column.index('ZANSWERED')]
 
         decrypted = decryptor.decryptcallhistorydb(record[column.index('ZADDRESS')])
-        print ' [-] Time: %s, Phone Number: %s'%(time_converted, decrypted)
-
+        row = [time_converted, 'Yes' if int(ans) == 1 else 'No', 'Yes' if int(record[column.index('ZORIGINATED')]) == 1 else 'No', 'CellPhone' if int(record[column.index('ZCALLTYPE')]) == 1 else 'FaceTime', str(decrypted), '']
+        rows.append(row)
+    
+    mszlist = [-1, -1, -1, -1, -1, -1]
+    columnprint(header, rows, mszlist)
 
     exit()
 
