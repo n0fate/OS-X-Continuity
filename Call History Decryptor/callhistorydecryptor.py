@@ -72,6 +72,8 @@ class CallHistoryDecryptor:
         return colnames, True
 
     def decryptcallhistorydb(self, blob):
+        if blob is None:
+            return ""
         iv = blob[0x10:0x20]
         data = blob[0x20:]
         tag = blob[0:0x10]
@@ -157,8 +159,6 @@ def main():
     
     mszlist = [-1, -1, -1, -1, -1, -1]
     columnprint(header, rows, mszlist)
-
-    exit()
 
 if __name__ == "__main__":
     main()
